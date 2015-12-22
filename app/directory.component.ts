@@ -69,11 +69,9 @@ export class DirectoryComponent {
     private letters;
 
     private scrollTop;
-    private element;
 
-    constructor(mopidy: Mopidy, element: ElementRef, cd: ChangeDetectorRef) {
+    constructor(mopidy: Mopidy, private element: ElementRef, cd: ChangeDetectorRef) {
 
-        this.element = element;
 
         mopidy.connect().then(m => {
             return m.library.browse({uri: this.uri})

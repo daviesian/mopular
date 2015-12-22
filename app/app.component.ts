@@ -1,5 +1,5 @@
 
-import {Component, NgZone} from 'angular2/core';
+import {Component, NgZone, OnInit} from 'angular2/core';
 import {Mopidy} from './Mopidy'
 
 import {LibraryComponent} from "./library.component";
@@ -45,45 +45,32 @@ import {ChangeDetectorRef} from "angular2/core";
     `],
     directives: [LibraryComponent, SliderComponent],
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
     public tracks;
     public currentTrack = null;
-    private mopidyJS;
-    private foo;
 
     private volume;
 
-    private changeDetector: ChangeDetectorRef;
 
-    constructor(mopidy: Mopidy, cd: ChangeDetectorRef) {
+    constructor(private mopidy: Mopidy, private changeDetector: ChangeDetectorRef) { }
 
-        this.foo = new Promise(r => {
-            r([1,2,3,4,5]);
-        });
-/*
-        this.tracks = new Promise(r => {
-           r([])
-        });
-*/
-        this.mopidyJS = mopidy.mopidy;
-        this.changeDetector = cd;
+    ngOnInit() {
+        this.mopidy.connect();
 
-        mopidy.connect();
-
-        mopidy.mopidy.bind({
+        this.mopidy.mopidy.bind({
             'state:online': () => {
                 this.updateCurrentTrack()
                 this.updateTracklist();
                 this.updateVolume();
             },
             'event:tracklistChanged': this.updateTracklist,
-            'event:trackPlaybackEnded': () => { this.currentTrack = null; cd.detectChanges(); },
+            'event:trackPlaybackEnded': () => { this.currentTrack = null; this.changeDetector.detectChanges(); },
             'event:trackPlaybackStarted': this.updateCurrentTrack,
             'event:volumeChanged': this.updateVolume,
 
         });
 
-        mopidy.mopidy.on((e) => {
+        this.mopidy.mopidy.on((e) => {
             if (e.indexOf("websocket:") != 0) {
                 console.debug("MOPIDY:", e);
             }
@@ -91,14 +78,14 @@ export class AppComponent {
     }
 
     updateCurrentTrack = () => {
-        this.mopidyJS.playback.getCurrentTlTrack().then(t => {
+        this.mopidy.mopidy.playback.getCurrentTlTrack().then(t => {
             this.currentTrack = t;
             this.changeDetector.detectChanges();
         });
     }
 
     updateTracklist = () => {
-        this.mopidyJS.tracklist.getTlTracks().then(ts => {
+        this.mopidy.mopidy.tracklist.getTlTracks().then(ts => {
             this.tracks = ts;
             this.changeDetector.detectChanges();
         });
@@ -106,19 +93,19 @@ export class AppComponent {
 
     onLibraryChooseTrack(uri) {
 
-        this.mopidyJS.tracklist.add({uris: [uri]}).then(ts => {
-           this.mopidyJS.playback.play({tl_track: ts[0]});
+        this.mopidy.mopidy.tracklist.add({uris: [uri]}).then(ts => {
+           this.mopidy.mopidy.playback.play({tl_track: ts[0]});
         });
 
     }
 
     onVolumeChanged(newVol) {
 
-        this.mopidyJS.mixer.setVolume({volume: Math.round(newVol*100)});
+        this.mopidy.mopidy.mixer.setVolume({volume: Math.round(newVol*100)});
     }
 
     updateVolume = () => {
-        return this.mopidyJS.mixer.getVolume().then(v => {
+        return this.mopidy.mopidy.mixer.getVolume().then(v => {
             this.volume = v/100.0;
             this.changeDetector.detectChanges();
         });
