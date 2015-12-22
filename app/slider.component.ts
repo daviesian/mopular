@@ -1,4 +1,4 @@
-import {Component, OnChanges, OnInit, ViewQuery, QueryList, ElementRef} from "angular2/core";
+import {Component, OnChanges} from "angular2/core";
 import {Input} from "angular2/core";
 import {Output} from "angular2/core";
 import {EventEmitter} from "angular2/core";

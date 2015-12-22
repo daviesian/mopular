@@ -15,7 +15,7 @@ import {ChangeDetectorRef} from "angular2/core";
                 <ul class="heroes">
                     <li *ngFor="#track of tracks"
                         [class.selected]="currentTrack?.tlid == track.tlid">
-                        <span class="badge">{{track.track.artists[0].name}}</span> {{track.track.name}}
+                        <span class="badge">{{track.track.artists ? track.track.artists[0]?.name : ""}}</span> {{track.track.name}}
                     </li>
                 </ul>
 
